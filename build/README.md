@@ -13,7 +13,7 @@ https://buildroot.org/download.html
 If you only want to test the boot itself, though, you can use rootfs generated 
 in next section. Otherwise skip it.
 
-### Building crud initrd only for boot test sake
+### Building crude initrd only for boot test sake
 If you want to quickly test kernel images from here, and you don't want to build
 whole buildroot (this can take a while and be cumbersome sometime). 
 You can create your own initrd by issuing following commands (requires root):
@@ -41,9 +41,9 @@ If you have flashed bootloader along with the FAT32 partition from here:
 https://github.com/Doct2O/orangepi-zero3-bl
 
 All you need to do now is to copy: 
--Image 
--sun50i-h618-orangepi-zero3.dtb
--rootfs.cpio.uboot
+- Image 
+- sun50i-h618-orangepi-zero3.dtb
+- rootfs.cpio.uboot
 To SD Card FAT partition as a regular files, and then execute in u-boot:
 
 ```
@@ -461,12 +461,13 @@ Run /init as init process
     TERM=linux
 init: cannot set terminal process group (-1): Not a tty
 init: no job control in this shell
+init-4.4# echo *
+dev init root rootfs.cpio.gz
 init-4.4#
-
 ```
 </details>
 
-# Botting from through network via tftpd
+# Botting through network via tftpd
 This reuires a bit more of preparation, but is way more convinient for testing.
 
 - First connect the board to the PC via ethernet cord
@@ -516,7 +517,7 @@ You can fix it by invoking on Linux:
 ```
 sudo ethtool -s <interface> autoneg on speed 100 duplex full
 ```
-On windows it can be changed in Devices Manager properites of the card. 
+On windows it can be changed in Devices Manager properities of the card. 
 In advanced tab, search something like ```Speed and duplex``` and pick there
 ```100 Mbps Full Duplex```.
 
