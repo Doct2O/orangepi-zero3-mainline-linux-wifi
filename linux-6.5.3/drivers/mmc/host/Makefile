@@ -102,6 +102,13 @@ cqhci-$(CONFIG_MMC_CRYPTO)		+= cqhci-crypto.o
 obj-$(CONFIG_MMC_HSQ)			+= mmc_hsq.o
 obj-$(CONFIG_MMC_LITEX)			+= litex_mmc.o
 
+obj-$(CONFIG_MMC_SUNXI_5_4)                      += sunxi_mmc_host.o
+sunxi_mmc_host-$(CONFIG_MMC_SUNXI_V4P1X)         += sunxi-mmc-v4p1x.o
+sunxi_mmc_host-$(CONFIG_MMC_SUNXI_V4P00X)        += sunxi-mmc-v4p00x.o
+sunxi_mmc_host-$(CONFIG_MMC_SUNXI_V4P5X)         += sunxi-mmc-v4p5x.o
+sunxi_mmc_host-$(CONFIG_MMC_SUNXI_V5P3X)         += sunxi-mmc-v5p3x.o
+sunxi_mmc_host-$(CONFIG_MMC_SUNXI_5_4)           += sunxi-mmc-5.4.o sunxi-mmc-debug.o sunxi-mmc-export.o sunxi-mmc-panic.o
+
 ifeq ($(CONFIG_CB710_DEBUG),y)
 	CFLAGS-cb710-mmc	+= -DDEBUG
 endif

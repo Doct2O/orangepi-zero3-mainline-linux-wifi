@@ -1,6 +1,8 @@
 #ifndef WCN_USB_H
 #define WCN_USB_H
 
+#include "../../missing-from-5.4.h"
+
 #include <linux/kernel.h>
 #include <linux/errno.h>
 #include <linux/slab.h>

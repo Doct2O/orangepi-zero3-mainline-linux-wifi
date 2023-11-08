@@ -145,13 +145,15 @@ static int prefixcmp(const char *str, const char *prefix)
 			return (unsigned char)*prefix - (unsigned char)*str;
 }
 
-#if KERNEL_VERSION(3, 19, 0) <= LINUX_VERSION_CODE
+/* #if KERNEL_VERSION(3, 19, 0) <= LINUX_VERSION_CODE
 static int find_callback(struct dir_context *ctx, const char *name, int namlen,
 		     loff_t offset, u64 ino, unsigned int d_type)
 #else
 static int find_callback(void *ctx, const char *name, int namlen,
 		     loff_t offset, u64 ino, unsigned int d_type)
-#endif
+#endif */
+static bool find_callback(struct dir_context * ctx, const char * name, int namelen, loff_t offset, u64 ino,
+                          unsigned d_type)
 {
 	int tmp;
 

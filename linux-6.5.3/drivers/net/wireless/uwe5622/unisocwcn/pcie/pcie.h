@@ -14,6 +14,7 @@
 #ifndef __PCIE_DRV_H__
 #define __PCIE_DRV_H__
 
+#include "../../missing-from-5.4.h"
 #include <linux/pci.h>
 
 #define DRVER_NAME      "wcn_pcie"

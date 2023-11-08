@@ -16,6 +16,8 @@
 #include <linux/time.h>
 #include <linux/rtc.h>
 
+#include "../missing-from-5.4.h"
+
 #define BT_MAX_DUMP_FRAME_LEN 2
 #define BT_MAX_DUMP_DATA_LEN 20
 #define BT_DATA_OUT 0

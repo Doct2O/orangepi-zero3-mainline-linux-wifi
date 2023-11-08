@@ -296,6 +296,16 @@ config ARCH_MMAP_RND_BITS_MIN
 	default 16 if ARM64_16K_PAGES
 	default 18
 
+config ARCH_SUN50I
+       bool "SoC sun50i architecture"
+       depends on MMC_SUNXI
+       default n
+
+config ARCH_SUN50IW9
+        bool "SoC sun50iw9 architecture"
+       select ARCH_SUN50I
+        default n
+
 # max bits determined by the following formula:
 #  VA_BITS - PAGE_SHIFT - 3
 config ARCH_MMAP_RND_BITS_MAX

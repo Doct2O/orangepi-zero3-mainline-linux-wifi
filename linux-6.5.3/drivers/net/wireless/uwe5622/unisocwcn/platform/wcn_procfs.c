@@ -37,6 +37,7 @@
 #include "wcn_txrx.h"
 #include "marlin_platform.h"
 
+#include "../../../../../../fs/proc/internal.h"
 
 #define CONFIG_CP2_ASSERT       (0)
 
@@ -420,18 +421,32 @@ static int mdbg_snap_shoot_seq_open(struct inode *inode, struct file *file)
 	return seq_open(file, &mdbg_snap_shoot_seq_ops);
 }
 
-static const struct file_operations mdbg_snap_shoot_seq_fops = {
+/* static const struct file_operations mdbg_snap_shoot_seq_fops = {
 	.open = mdbg_snap_shoot_seq_open,
 	.read = seq_read,
 	.write = mdbg_snap_shoot_seq_write,
 	.llseek = seq_lseek,
 	.release = seq_release
+}; */
+static const struct proc_ops mdbg_snap_shoot_seq_fops = {
+       .proc_open = mdbg_snap_shoot_seq_open,
+       .proc_read = seq_read,
+       .proc_write = mdbg_snap_shoot_seq_write,
+       .proc_lseek = seq_lseek,
+       .proc_release = seq_release
 };
+
+static inline struct mdbg_proc_entry * PDE_DATA(struct inode *inode)
+{
+       return (struct mdbg_proc_entry *) PDE(inode)->data;
+}
+
 
 static int mdbg_proc_open(struct inode *inode, struct file *filp)
 {
-	struct mdbg_proc_entry *entry =
-		(struct mdbg_proc_entry *)PDE_DATA(inode);
+	/* struct mdbg_proc_entry *entry =
+		(struct mdbg_proc_entry *)PDE_DATA(inode); */
+	struct mdbg_proc_entry *entry = PDE_DATA(inode);
 	filp->private_data = entry;
 
 	return 0;
@@ -1007,13 +1022,21 @@ static unsigned int mdbg_proc_poll(struct file *filp, poll_table *wait)
 	return mask;
 }
 
-static const struct file_operations mdbg_proc_fops = {
+/* static const struct file_operations mdbg_proc_fops = {
 	.open		= mdbg_proc_open,
 	.release	= mdbg_proc_release,
 	.read		= mdbg_proc_read,
 	.write		= mdbg_proc_write,
 	.poll		= mdbg_proc_poll,
+}; */
+static const struct proc_ops mdbg_proc_fops = {
+       .proc_open              = mdbg_proc_open,
+       .proc_release           = mdbg_proc_release,
+       .proc_read              = mdbg_proc_read,
+       .proc_write             = mdbg_proc_write,
+       .proc_poll              = mdbg_proc_poll,
 };
+
 
 int mdbg_memory_alloc(void)
 {

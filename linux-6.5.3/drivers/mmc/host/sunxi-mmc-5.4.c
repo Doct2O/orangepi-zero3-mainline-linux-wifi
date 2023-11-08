@@ -20,6 +20,7 @@
 #include <linux/interrupt.h>
 #include <linux/delay.h>
 #include <linux/err.h>
+#include <linux/pinctrl/consumer.h>
 
 #include <linux/clk.h>
 #include <linux/reset.h>
@@ -68,6 +69,8 @@
 #define SUNXI_MIN_R1B_TIMEOUT_MS (20)
 #define SUNXI_TRANS_TIMEOUT  (5*HZ)
 #define SUNXI_CMD11_TIMEOUT  (1*HZ)
+
+#define MMC_PM_IGNORE_PM_NOTIFY  (1 << 2)
 
 /*judge encryption flag bit*/
 #define sunxi_crypt_flags(sg) (((sg->offset)	\
@@ -2146,7 +2149,7 @@ static struct mmc_host_ops sunxi_mmc_ops = {
 	.get_ro = mmc_gpio_get_ro,
 	.get_cd = sunxi_mmc_gpio_get_cd,
 	.enable_sdio_irq = sunxi_mmc_enable_sdio_irq,
-	.hw_reset = sunxi_mmc_hw_reset,
+	.card_hw_reset = sunxi_mmc_hw_reset,
 	.start_signal_voltage_switch = sunxi_mmc_signal_voltage_switch,
 	.card_busy = sunxi_mmc_card_busy,
 };
@@ -2278,7 +2281,7 @@ static int sunxi_mmc_resource_request(struct sunxi_mmc_host *host,
 	struct device_node *np = pdev->dev.of_node;
 	int ret;
 	u32 caps_val = 0;
-	enum of_gpio_flags flags;
+	// enum of_gpio_flags flags;
 	struct device_node *apk_np = of_find_node_by_name(NULL, "auto_print");
 	const char *apk_sta = NULL;
 
@@ -2503,8 +2506,9 @@ static int sunxi_mmc_resource_request(struct sunxi_mmc_host *host,
 
 
 	host->card_pwr_gpio =
-	    of_get_named_gpio_flags(np, "card-pwr-gpios", 0,
-				    (enum of_gpio_flags *)&flags);
+	    /*of_get_named_gpio_flags(np, "card-pwr-gpios", 0,
+				    (enum of_gpio_flags *)&flags);*/
+	    of_get_named_gpio(np, "card-pwr-gpios", 0);
 	if (gpio_is_valid(host->card_pwr_gpio)) {
 		ret =
 		    devm_gpio_request_one(&pdev->dev, host->card_pwr_gpio,
@@ -2719,8 +2723,8 @@ static int sunxi_mmc_extra_of_parse(struct mmc_host *mmc)
 
 	np = mmc->parent->of_node;
 
-	if (of_property_read_bool(np, "cap-erase"))
-		mmc->caps |= MMC_CAP_ERASE;
+	/*if (of_property_read_bool(np, "cap-erase"))
+		mmc->caps |= MMC_CAP_ERASE;*/
 	if (of_property_read_bool(np, "mmc-high-capacity-erase-size"))
 		mmc->caps2 |= MMC_CAP2_HC_ERASE_SZ;
 	if (sunxi_mmc_chk_hr1b_cap(host)
@@ -2913,7 +2917,8 @@ static int sunxi_mmc_probe(struct platform_device *pdev)
 		goto error_free_dma;
 
 	/*fix Unbalanced pm_runtime_enable when async occured.*/
-	dev_pm_set_driver_flags(&mmc->class_dev, DPM_FLAG_NEVER_SKIP);
+	/*dev_pm_set_driver_flags(&mmc->class_dev, DPM_FLAG_NEVER_SKIP);*/
+	dev_pm_set_driver_flags(&mmc->class_dev, DPM_FLAG_NO_DIRECT_COMPLETE);
 	sunxi_show_det_mode(mmc);
 	ret = mmc_create_sys_fs(host, pdev);
 	if (ret) {
@@ -3248,7 +3253,7 @@ void sunxi_shutdown_mmc(struct platform_device *pdev)
 
 static struct platform_driver sunxi_mmc_driver = {
 	.driver = {
-		   .name = "sunxi-mmc",
+		   .name = "sunxi-mmc-5.4",
 		   .of_match_table = of_match_ptr(sunxi_mmc_of_match),
 		   .pm = sunxi_mmc_pm_ops,
 		   },

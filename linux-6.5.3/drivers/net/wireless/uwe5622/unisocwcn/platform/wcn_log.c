@@ -260,7 +260,8 @@ int log_cdev_init(void)
 	struct wcnlog_dev *dev[WCN_LOG_MAX_MINOR] = {NULL};
 
 	WCN_DEBUG("log_cdev_init\n");
-	wcnlog_class = class_create(THIS_MODULE, "slog_wcn");
+	/* wcnlog_class = class_create(THIS_MODULE, "slog_wcn"); */
+	wcnlog_class = class_create("slog_wcn");
 	if (IS_ERR(wcnlog_class))
 		return PTR_ERR(wcnlog_class);
 

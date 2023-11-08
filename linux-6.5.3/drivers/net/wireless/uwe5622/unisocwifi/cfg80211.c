@@ -23,6 +23,7 @@
  * GNU General Public License for more details.
  */
 
+#include <linux/time64.h>
 #include "sprdwl.h"
 #include "cfg80211.h"
 #include "cmdevt.h"
@@ -702,10 +703,14 @@ static int sprdwl_add_cipher_key(struct sprdwl_vif *vif, bool pairwise,
 	return ret;
 }
 
-static int sprdwl_cfg80211_add_key(struct wiphy *wiphy, struct net_device *ndev,
+/* static int sprdwl_cfg80211_add_key(struct wiphy *wiphy, struct net_device *ndev,
 				   u8 key_index, bool pairwise,
 				   const u8 *mac_addr,
-				   struct key_params *params)
+				   struct key_params *params) */
+static int sprdwl_cfg80211_add_key(struct wiphy *wiphy, struct net_device *ndev,
+                                   int link_id, u8 key_index, bool pairwise,
+                                   const u8 *mac_addr,
+                                   struct key_params *params)
 {
 	struct sprdwl_vif *vif = netdev_priv(ndev);
 
@@ -724,9 +729,12 @@ static int sprdwl_cfg80211_add_key(struct wiphy *wiphy, struct net_device *ndev,
 					     mac_addr);
 }
 
-static int sprdwl_cfg80211_del_key(struct wiphy *wiphy, struct net_device *ndev,
+/* static int sprdwl_cfg80211_del_key(struct wiphy *wiphy, struct net_device *ndev,
 				   u8 key_index, bool pairwise,
-				   const u8 *mac_addr)
+				   const u8 *mac_addr) */
+static int sprdwl_cfg80211_del_key(struct wiphy *wiphy, struct net_device *ndev,
+                                   int link_id, u8 key_index, bool pairwise,
+                                   const u8 *mac_addr)
 {
 	struct sprdwl_vif *vif = netdev_priv(ndev);
 
@@ -753,10 +761,14 @@ static int sprdwl_cfg80211_del_key(struct wiphy *wiphy, struct net_device *ndev,
 			      pairwise, mac_addr);
 }
 
-static int sprdwl_cfg80211_set_default_key(struct wiphy *wiphy,
+/* static int sprdwl_cfg80211_set_default_key(struct wiphy *wiphy,
 					   struct net_device *ndev,
 					   u8 key_index, bool unicast,
-					   bool multicast)
+					   bool multicast)*/
+ static int sprdwl_cfg80211_set_default_key(struct wiphy *wiphy,
+                                           struct net_device *ndev, int link_id,
+                                           u8 key_index, bool unicast,
+                                           bool multicast)
 {
 	struct sprdwl_vif *vif = netdev_priv(ndev);
 
@@ -984,7 +996,8 @@ static int sprdwl_cfg80211_change_beacon(struct wiphy *wiphy,
 	return sprdwl_change_beacon(vif, beacon);
 }
 
-static int sprdwl_cfg80211_stop_ap(struct wiphy *wiphy, struct net_device *ndev)
+/* static int sprdwl_cfg80211_stop_ap(struct wiphy *wiphy, struct net_device *ndev) */
+static int sprdwl_cfg80211_stop_ap(struct wiphy *wiphy, struct net_device *ndev, unsigned int link_id)
 {
 #ifdef DFS_MASTER
 	struct sprdwl_vif *vif = netdev_priv(ndev);
@@ -2162,7 +2175,8 @@ void sprdwl_report_scan_result(struct sprdwl_vif *vif, u16 chan, s16 rssi,
 	struct ieee80211_mgmt *mgmt = (struct ieee80211_mgmt *)frame;
 	struct ieee80211_channel *channel;
 	struct cfg80211_bss *bss;
-	struct timespec ts;
+	/* struct timespec ts; */
+	struct timespec64 ts;
 	u16 capability, beacon_interval;
 	u32 freq;
 	s32 signal;
@@ -2210,7 +2224,8 @@ void sprdwl_report_scan_result(struct sprdwl_vif *vif, u16 chan, s16 rssi,
 	ie = mgmt->u.probe_resp.variable;
 	ielen = len - offsetof(struct ieee80211_mgmt, u.probe_resp.variable);
 	/* framework use system bootup time */
-	ts = ktime_to_timespec(ktime_get_boottime());
+	/* ts = ktime_to_timespec(ktime_get_boottime()); */
+	ts = ktime_to_timespec64(ktime_get_boottime());
 	tsf = (u64)ts.tv_sec * 1000000 + div_u64(ts.tv_nsec, 1000);
 	beacon_interval = le16_to_cpu(mgmt->u.probe_resp.beacon_int);
 	capability = le16_to_cpu(mgmt->u.probe_resp.capab_info);
@@ -2259,7 +2274,8 @@ void sprdwl_report_connection(struct sprdwl_vif *vif,
 	struct ieee80211_channel *channel;
 	struct ieee80211_mgmt *mgmt;
 	struct cfg80211_bss *bss = NULL;
-	struct timespec ts;
+	/* struct timespec ts; */
+	struct timespec64 ts;
 #ifdef WMMAC_WFA_CERTIFICATION
 	struct wmm_params_element *wmm_params;
 	int i;
@@ -2335,7 +2351,8 @@ void sprdwl_report_connection(struct sprdwl_vif *vif,
 		ielen = conn_info->bea_ie_len - offsetof(struct ieee80211_mgmt,
 						 u.probe_resp.variable);
 		/* framework use system bootup time */
-		ts = ktime_to_timespec(ktime_get_boottime());
+		/* ts = ktime_to_timespec(ktime_get_boottime()); */
+		ts = ktime_to_timespec64(ktime_get_boottime());
 		tsf = (u64)ts.tv_sec * 1000000 + div_u64(ts.tv_nsec, 1000);
 		beacon_interval = le16_to_cpu(mgmt->u.probe_resp.beacon_int);
 		capability = le16_to_cpu(mgmt->u.probe_resp.capab_info);
@@ -2369,7 +2386,7 @@ void sprdwl_report_connection(struct sprdwl_vif *vif,
 		 conn_info->status == SPRDWL_ROAM_SUCCESS){
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 		struct cfg80211_roam_info roam_info = {
-			.bss = bss,
+			/* .bss = bss, */
 			.req_ie = conn_info->req_ie,
 			.req_ie_len = conn_info->req_ie_len,
 			.resp_ie = conn_info->resp_ie,
@@ -2838,11 +2855,16 @@ static void sprdwl_cfg80211_stop_p2p_device(struct wiphy *wiphy,
 		sprdwl_scan_done(vif, true);
 }
 
-static int sprdwl_cfg80211_tdls_mgmt(struct wiphy *wiphy,
+/* static int sprdwl_cfg80211_tdls_mgmt(struct wiphy *wiphy,
 				     struct net_device *ndev, const u8 *peer,
 				     u8 action_code, u8 dialog_token,
 				     u16 status_code,  u32 peer_capability,
-				     bool initiator, const u8 *buf, size_t len)
+				     bool initiator, const u8 *buf, size_t len) */
+ static int sprdwl_cfg80211_tdls_mgmt(struct wiphy *wiphy,
+                                     struct net_device *ndev, const u8 *peer,
+                                     int link_id, u8 action_code, u8 dialog_token,
+                                     u16 status_code,  u32 peer_capability,
+                                     bool initiator, const u8 *buf, size_t len)
 {
 	struct sprdwl_vif *vif = netdev_priv(ndev);
 	struct sk_buff *tdls_skb;
@@ -3260,7 +3282,7 @@ static struct cfg80211_ops sprdwl_cfg80211_ops = {
 	.remain_on_channel = sprdwl_cfg80211_remain_on_channel,
 	.cancel_remain_on_channel = sprdwl_cfg80211_cancel_remain_on_channel,
 	.mgmt_tx = sprdwl_cfg80211_mgmt_tx,
-	.mgmt_frame_register = sprdwl_cfg80211_mgmt_frame_register,
+	/* .mgmt_frame_register = sprdwl_cfg80211_mgmt_frame_register, */
 	.set_power_mgmt = sprdwl_cfg80211_set_power_mgmt,
 	.set_cqm_rssi_config = sprdwl_cfg80211_set_cqm_rssi_config,
 	.sched_scan_start = sprdwl_cfg80211_sched_scan_start,

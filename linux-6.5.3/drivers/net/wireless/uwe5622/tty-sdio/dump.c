@@ -46,13 +46,15 @@ static void get_time(unsigned char data_inout)
 	case BT_DATA_OUT:
 		data_dump->txtime_t[BT_MAX_DUMP_FRAME_LEN - 1].tv.tv_sec = now.tv_sec;
 		data_dump->txtime_t[BT_MAX_DUMP_FRAME_LEN - 1].tv.tv_usec = now.tv_nsec/1000;
-		rtc_time_to_tm(data_dump->txtime_t[BT_MAX_DUMP_FRAME_LEN - 1].tv.tv_sec,
+		/* rtc_time_to_tm(data_dump->txtime_t[BT_MAX_DUMP_FRAME_LEN - 1].tv.tv_sec, */
+		rtc_time64_to_tm(data_dump->txtime_t[BT_MAX_DUMP_FRAME_LEN - 1].tv.tv_sec,
 		&(data_dump->txtime_t[BT_MAX_DUMP_FRAME_LEN - 1].rtc_t));
 		break;
 	case BT_DATA_IN:
 		data_dump->rxtime_t[BT_MAX_DUMP_FRAME_LEN - 1].tv.tv_sec = now.tv_sec;
 		data_dump->rxtime_t[BT_MAX_DUMP_FRAME_LEN - 1].tv.tv_usec = now.tv_nsec/1000;
-		rtc_time_to_tm(data_dump->rxtime_t[BT_MAX_DUMP_FRAME_LEN - 1].tv.tv_sec,
+		/* rtc_time_to_tm(data_dump->rxtime_t[BT_MAX_DUMP_FRAME_LEN - 1].tv.tv_sec, */
+		rtc_time64_to_tm(data_dump->rxtime_t[BT_MAX_DUMP_FRAME_LEN - 1].tv.tv_sec,
 		&(data_dump->rxtime_t[BT_MAX_DUMP_FRAME_LEN - 1].rtc_t));
 		break;
 	default:

@@ -94,8 +94,10 @@ static int sprdwl_cmd_set_psm_cap(struct sprdwl_vif *vif)
 	return ret;
 }
 
-static int sprdwl_npi_pre_doit(const struct genl_ops *ops,
-			       struct sk_buff *skb, struct genl_info *info)
+/* static int sprdwl_npi_pre_doit(const struct genl_ops *ops,
+			       struct sk_buff *skb, struct genl_info *info) */
+static int sprdwl_npi_pre_doit(const struct genl_split_ops *ops,
+                               struct sk_buff *skb, struct genl_info *info)
 {
 	struct net_device *ndev;
 	struct sprdwl_vif *vif;
@@ -125,8 +127,10 @@ static int sprdwl_npi_pre_doit(const struct genl_ops *ops,
 	return 0;
 }
 
-static void sprdwl_npi_post_doit(const struct genl_ops *ops,
-				 struct sk_buff *skb, struct genl_info *info)
+/* static void sprdwl_npi_post_doit(const struct genl_ops *ops,
+				 struct sk_buff *skb, struct genl_info *info) */
+static void sprdwl_npi_post_doit(const struct genl_split_ops *ops,
+                                 struct sk_buff *skb, struct genl_info *info)
 {
 	if (info->user_ptr[0])
 		dev_put(info->user_ptr[0]);

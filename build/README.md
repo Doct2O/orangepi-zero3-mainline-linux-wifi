@@ -44,6 +44,7 @@ All you need to do now is to copy:
 - Image 
 - sun50i-h618-orangepi-zero3.dtb
 - rootfs.cpio.uboot
+
 To SD Card FAT partition as a regular files, and then execute in u-boot:
 
 ```
@@ -467,7 +468,7 @@ init-4.4#
 ```
 </details>
 
-# Botting through network via tftpd
+# Botting through network via ad hoc tftp server
 This reuires a bit more of preparation, but is way more convinient for testing.
 
 - First connect the board to the PC via ethernet cord
@@ -989,3 +990,289 @@ init-4.4#
 
 ```
 </details>
+
+# Drivers for chip 20U5622
+This dir besides containing the Kernel Images and DTB, holds the drivers for
+chip 20U5622. The drivers are stored in form of a result of kernel's 'modules_install'.
+The result is stored in archive ```lib.tar.gz```. To get it working on the target
+untar it and copy its content to your's rootfs /lib. After this modprobe should see
+the drivers for 20U5622.
+
+```
+# modprobe -l
+kernel/fs/efivarfs/efivarfs.ko
+kernel/drivers/char/hw_random/rng-core.ko
+kernel/drivers/char/hw_random/arm_smccc_trng.ko
+kernel/drivers/misc/sunxi-rf/sunxi_rfkill.ko
+kernel/drivers/net/wireless/uwe5622/unisocwcn/uwe5622_bsp_sdio.ko
+kernel/drivers/net/wireless/uwe5622/unisocwifi/sprdwl_ng.ko
+kernel/drivers/net/wireless/uwe5622/tty-sdio/sprdbt_tty.ko
+```
+
+Before inserting the module, you need to have the wifi chip firmware
+in filesystem in ```/lib/firmware```:
+ - wcnmodem.bin           - reference file sha256 hash: 119b87ce30875734a67462f7293fb8fe85acf3270fe8b78c978ae24be7715a80
+ - wifi_2355b001_1ant.ini - reference file sha256 hash: 1F3C40EC245A8D0B99AD1C23706597D6DD5008AB80CEFB7BCC1956EFC4E938F7 
+
+At lest the two above were tested by me.
+They can be found here: https://github.com/orangepi-xunlong/firmware
+
+Due what appears to be timing problems on the sdio bus, please
+invoke this command before modprobing the driver, to aviod kernel panic:
+```
+echo 0 > /proc/sys/kernel/hung_task_timeout_secs
+```
+
+After this you can modprobe the driver for 20U5622 itself:
+```
+modprobe sprdwl_ng.ko 
+```
+
+Once done the ```wlan0``` net interface should be available and
+scanning WiFi networks by ```iw dev wlan0 scan``` should work as well.
+
+<details>
+<summary>Expand for log of modprobing, if listing and wifi scanning:</summary>
+
+```
+# modprobe sprdwl_ng.ko
+sunxi-rfkill soc:rfkill: module version: v1.0.9
+sunxi-rfkill soc:rfkill: pinctrl_lookup_state(default) failed! return ffffffffffffffed
+sunxi-rfkill soc:rfkill: get gpio chip_en failed
+sunxi-rfkill soc:rfkill: get gpio power_en failed
+sunxi-rfkill soc:rfkill: wlan_busnum (1)
+sunxi-rfkill soc:rfkill: Missing wlan_power.
+sunxi-rfkill soc:rfkill: wlan_regon gpio=210 assert=1
+sunxi-rfkill soc:rfkill: wlan_hostwake gpio=207 assert=1
+sunxi-rfkill soc:rfkill: wakeup source is enabled
+sunxi-rfkill soc:rfkill: Missing bt_power.
+udevd[138]: specified group 'input' unknown
+sunxi-rfkill soc:rfkill: bt_rst gpio=211 assert=0
+udevd[138]: specified group 'kvm' unknown
+WCN: marlin_init entry!
+WCN: wcn config bt wake host
+WCN: marlin_registsr_bt_wake bt_hostwake gpio=208 intnum=204
+WCN: wcn config wifi wake host
+sdiohal:sdiohal_parse_dt adma_tx:1, adma_rx:1, pwrseq:0, irq type:data, gpio_num:0, blksize:840
+sdiohal:sdiohal_init ok
+WCN: marlin_probe ok!
+WCN: start_marlin [MARLIN_WIFI]
+WCN: marlin power state:0, subsys: [MARLIN_WIFI] power 1
+WCN: the first power on start
+sunxi-rfkill soc:rfkill: wlan power on success
+WCN: marlin chip en pull up
+sdiohal:sdiohal_scan_card
+sunxi-rfkill soc:rfkill: bus_index: 1
+sunxi-mmc-5.4 4021000.sdmmc: sdc set ios:clk 0Hz bm PP pm UP vdd 21 width 1 timing LEGACY(SDR12) dt B
+sunxi-mmc-5.4 4021000.sdmmc: sdc set ios:clk 400000Hz bm PP pm ON vdd 21 width 1 timing LEGACY(SDR12) dt B
+sunxi-mmc-5.4 4021000.sdmmc: smc 1 p1 err, cmd 52, RTO !!
+sunxi-mmc-5.4 4021000.sdmmc: smc 1 p1 err, cmd 52, RTO !!
+sunxi-mmc-5.4 4021000.sdmmc: sdc set ios:clk 400000Hz bm PP pm ON vdd 21 width 1 timing LEGACY(SDR12) dt B
+sunxi-mmc-5.4 4021000.sdmmc: sdc set ios:clk 400000Hz bm PP pm ON vdd 21 width 1 timing LEGACY(SDR12) dt B
+sunxi-mmc-5.4 4021000.sdmmc: sdc set ios:clk 0Hz bm PP pm ON vdd 21 width 1 timing LEGACY(SDR12) dt B
+sunxi-mmc-5.4 4021000.sdmmc: sdc set ios:clk 400000Hz bm PP pm ON vdd 21 width 1 timing LEGACY(SDR12) dt B
+sunxi-mmc-5.4 4021000.sdmmc: sdc set ios:clk 400000Hz bm PP pm ON vdd 21 width 4 timing LEGACY(SDR12) dt B
+sunxi-mmc-5.4 4021000.sdmmc: sdc set ios:clk 400000Hz bm PP pm ON vdd 21 width 4 timing UHS-SDR104 dt B
+sunxi-mmc-5.4 4021000.sdmmc: sdc set ios:clk 150000000Hz bm PP pm ON vdd 21 width 4 timing UHS-SDR104 dt B
+mmc1: new ultra high speed SDR104 SDIO card at address 8800
+sdiohal:sdiohal_probe: func->class=0, vendor=0x0000, device=0x0000, func_num=0x0001, clock=150000000
+WCN: marlin_scan_finish!
+sdiohal:scan end!
+sdiohal:probe ok
+WCN: then marlin start to download
+WCN: marlin_get_wcn_chipid: chipid: 0x2355b001
+WCN: marlin_request_firmware from /lib/firmware/wcnmodem.bin start!
+sunxi-mmc-5.4 4021000.sdmmc: smc 1 p1 err, cmd 53, WR DCE !!
+sunxi-mmc-5.4 4021000.sdmmc: *****retry:start*****
+sunxi-mmc-5.4 4021000.sdmmc: REG_DRV_DL: 0x00010000
+sunxi-mmc-5.4 4021000.sdmmc: REG_SD_NTSR: 0x81710000
+sunxi-mmc-5.4 4021000.sdmmc: *****retry:re-send cmd*****
+sunxi-mmc-5.4 4021000.sdmmc: smc 1 p1 err, cmd 53, WR DCE !!
+sunxi-mmc-5.4 4021000.sdmmc: *****retry:start*****
+sunxi-mmc-5.4 4021000.sdmmc: REG_DRV_DL: 0x00010000
+sunxi-mmc-5.4 4021000.sdmmc: REG_SD_NTSR: 0x81710000
+sunxi-mmc-5.4 4021000.sdmmc: *****retry:re-send cmd*****
+sunxi-mmc-5.4 4021000.sdmmc: smc 1 p1 err, cmd 53, WR DCE !!
+sunxi-mmc-5.4 4021000.sdmmc: *****retry:start*****
+sunxi-mmc-5.4 4021000.sdmmc: REG_DRV_DL: 0x00010000
+sunxi-mmc-5.4 4021000.sdmmc: REG_SD_NTSR: 0x81710000
+sunxi-mmc-5.4 4021000.sdmmc: *****retry:re-send cmd*****
+sunxi-mmc-5.4 4021000.sdmmc: smc 1 p1 err, cmd 53, WR DCE !!
+sunxi-mmc-5.4 4021000.sdmmc: *****retry:start*****
+sunxi-mmc-5.4 4021000.sdmmc: REG_DRV_DL: 0x00030000
+sunxi-mmc-5.4 4021000.sdmmc: REG_SD_NTSR: 0x81710110
+sunxi-mmc-5.4 4021000.sdmmc: *****retry:re-send cmd*****
+4,end
+WCN: combin_img 0 marlin_firmware_write finish and successful
+WCN: marlin_start_run read reset reg val:0x1
+WCN: after do marlin_start_run reset reg val:0x0
+WCN: s_marlin_bootup_time=145910921068
+WCN: clock mode: TSX
+WCN: marlin_write_cali_data sync init_state:0xcccccccc
+WCN: marlin_write_cali_data sync init_state:0xf0f0f0f1
+WCN: sdio_config bt_wake_host trigger:[high]
+WCN: sdio_config irq:[inband]
+WCN: sdio_config wl_wake_host trigger:[high]
+WCN: sdio_config wake_host_level_duration_time:[20ms]
+WCN: sdio_config wake_host_data_separation:[bt/wifi reuse]
+WCN: marlin_send_sdio_config_to_cp sdio_config:0xb8f01 (enable config)
+WCN: marlin_write_cali_data finish
+WCN: check_cp_ready sync val:0xf0f0f0f2, prj_type val:0x0
+WCN: check_cp_ready sync val:0xf0f0f0f2, prj_type val:0x0
+WCN: check_cp_ready sync val:0xf0f0f0f2, prj_type val:0x0
+WCN: check_cp_ready sync val:0xf0f0f0f2, prj_type val:0x0
+WCN: check_cp_ready sync val:0xf0f0f0f6, prj_type val:0x0
+WCN: marlin_bind_verify confuse data: 0x7e72db03cef9fe36d186cbea85dc082
+WCN: marlin_bind_verify verify data: 0xc494a3cdbcfb679bc3ce932529261a3
+WCN: check_cp_ready sync val:0xf0f0f0f7, prj_type val:0x0
+WCN: check_cp_ready sync val:0xf0f0f0ff, prj_type val:0x0
+sdiohal:sdiohal_runtime_get entry
+WCN: get_cp2_version entry!
+WCN: WCND at cmd read:WCN_VER:Platform Version:MARLIN3_19B_W21.05.3~Project Version:sc2355_marlin3_lite_ott~12-15-2021 11:26:33~
+WCN: switch_cp2_log - close entry!
+WCN: WCND at cmd read:OK
+WCN: then marlin download finished and run ok
+WCN: start_loopcheck
+WCN: get_board_ant_num [one_ant]
+wifi ini path = /lib/firmware/wifi_2355b001_1ant.ini
+unisoc_wifi unisoc_wifi wlan0: mixed HW and IP checksum settings.
+#
+#
+# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: bond0: <BROADCAST,MULTICAST400> mtu 1500 qdisc noop qlen 1000
+    link/ether a6:60:ae:41:b9:dd brd ff:ff:ff:ff:ff:ff
+3: tunl0@NONE: <NOARP> mtu 1480 qdisc noop qlen 1000
+    link/ipip 0.0.0.0 brd 0.0.0.0
+4: ip6_vti0@NONE: <NOARP> mtu 1364 qdisc noop qlen 1000
+    link/tunnel6 00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00 brd 00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00
+5: sit0@NONE: <NOARP> mtu 1480 qdisc noop qlen 1000
+    link/sit 0.0.0.0 brd 0.0.0.0
+6: ip6tnl0@NONE: <NOARP> mtu 1452 qdisc noop qlen 1000
+    link/tunnel6 00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00 brd 00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00
+7: eth0: <BROADCAST,MULTICAST> mtu 1500 qdisc noop qlen 1000
+    link/ether 02:00:2a:af:18:c4 brd ff:ff:ff:ff:ff:ff
+8: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast qlen 1000
+    link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff
+#
+#
+# iw dev wlan0 scan
+BSS 54:67:51:1e:9b:67(on wlan0)
+        TSF: 170781700 usec (0d, 00:02:50)
+        freq: 2412
+        beacon interval: 100 TUs
+        capability: ESS Privacy ShortSlotTime RadioMeasure (0x1411)
+        signal: -70.00 dBm
+        last seen: 1572 ms ago
+        SSID: UPC6276F16
+        Supported rates: 1.0* 2.0* 5.5* 11.0* 9.0 18.0 36.0 54.0
+        DS Parameter set: channel 1
+        ERP: Barker_Preamble_Mode
+        Extended supported rates: 6.0 12.0 24.0 48.0
+        Country: EU     Environment: Indoor/Outdoor
+                Channels [1 - 13] @ 20 dBm
+        HT capabilities:
+                Capabilities: 0x1ac
+                        HT20
+                        SM Power Save disabled
+                        RX HT20 SGI
+                        TX STBC
+                        RX STBC 1-stream
+                        Max AMSDU length: 3839 bytes
+                        No DSSS/CCK HT40
+                Maximum RX AMPDU length 65535 bytes (exponent: 0x003)
+                Minimum RX AMPDU time spacing: 4 usec (0x05)
+                HT RX MCS rate indexes supported: 0-15
+                HT TX MCS rate indexes are undefined
+        HT operation:
+                 * primary channel: 1
+                 * secondary channel offset: no secondary
+                 * STA channel width: 20 MHz
+                 * RIFS: 0
+                 * HT protection: no
+                 * non-GF present: 1
+                 * OBSS non-GF present: 0
+                 * dual beacon: 0
+                 * dual CTS protection: 0
+                 * STBC beacon: 0
+                 * L-SIG TXOP Prot: 0
+                 * PCO active: 0
+                 * PCO phase: 0
+        WPA:     * Version: 1
+                 * Group cipher: TKIP
+                 * Pairwise ciphers: TKIP 00-00-00:0
+                 * Authentication suites: PSK
+        RSN:     * Version: 1
+                 * Group cipher: TKIP
+                 * Pairwise ciphers: CCMP TKIP
+                 * Authentication suites: PSK
+                 * Capabilities: 1-PTKSA-RC 1-GTKSA-RC (0x0000)
+        Extended capabilities:
+                 * HT Information Exchange Supported
+                 * BSS Transition
+        BSS Load:
+                 * station count: 4
+                 * channel utilisation: 69/255
+                 * available admission capacity: 31250 [*32us]
+        WMM:     * Parameter version 1
+                 * BE: CW 15-1023, AIFSN 3
+                 * BK: CW 15-1023, AIFSN 7
+                 * VI: CW 7-15, AIFSN 2, TXOP 3008 usec
+                 * VO: CW 3-7, AIFSN 2, TXOP 1504 usec
+        RM enabled capabilities:
+                Capabilities: 0x22 0x00 0x00 0x00 0x00
+                        Neighbor Report
+                        Beacon Active Measurement
+                Nonoperating Channel Max Measurement Duration: 0
+                Measurement Pilot Capability: 0
+        WPS:     * Version: 1.0
+                 * Wi-Fi Protected Setup State: 2 (Configured)
+                 * Response Type: 3 (AP)
+                 * UUID: 8985a700-1dd2-11b2-8601-5543a04a6443
+                 * Manufacturer: Ralink Technology, Corp.
+                 * Model: Ralink Wireless Access Point
+                 * Model Number: RT2860
+                 * Serial Number: 12345678
+                 * Primary Device Type: 6-0050f204-1
+                 * Device name: RalinkAPS
+                 * Config methods:
+                 * RF Bands: 0x1
+                 * Version2: 2.0
+(...)
+```
+</details>
+
+Sadly connecting to the existing network does not work via ```iwconfig wlan0 essid test_hotspot key s:test_hotspot```
+resulting in firmware crash.
+```
+# iwconfig wlan0 essid test_hotspot key s:test_hotspot
+warning: `iwconfig' uses wireless extensions which will stop working for Wi-Fi 7 hardware; use nl80211
+t key s:test_hotspot
+WCN: mdbg_assert_read:WCN Assert in rf_marlin.c line 1010, IS_2G_CHANNEL(pri20_ch_num) || IS_5G_CHANNEL(center_ch_num),data length 128
+WCN: stop_loopcheck
+WCN_ERR: chip reset & notify every subsystem...
+WCN: [marlin_cp2_reset], DO BSP RESET
+WCN: marlin power state:4, subsys: [MARLIN_WIFI] power 0
+WCN: wcn chip start power off!
+sdiohal:sdiohal_runtime_put entry
+sdiohal:sdiohal_runtime_put wait xmit_cnt end
+WCN: chip_power_off
+(...)
+```
+
+The same happens on stock reference image of Ubuntu from Sunxi for Orange Pi Zero 3, when using iwconfig.
+To get it working on the Sunxi's image one uses ```nmcli```, but I was unable to get it working
+in my build (nmcli and NetworkManager refuses to manage the wlan0 interface). This needs further investigation.
+
+But for now it must wait for better times from my side, since my goal was to configure
+the WiFi chip as an Access Point, which works great by utilizing ```hostapd``` tooling.
+But remember to change the mac (initially it is zeroed), before using ```hostapd``` eg.:
+```
+ip link set wlan0 address 02:42:ac:11:00:02
+```
+

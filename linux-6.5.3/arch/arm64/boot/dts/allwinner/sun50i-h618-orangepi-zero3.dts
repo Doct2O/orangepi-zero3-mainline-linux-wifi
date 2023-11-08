@@ -4,12 +4,90 @@
  */
 
 /dts-v1/;
-
+#include "../../../../../drivers/clk/sunxi-ng/ccu-sun50i-h616.h"
 #include "sun50i-h616-orangepi-zero.dtsi"
 
 / {
 	model = "OrangePi Zero3";
 	compatible = "xunlong,orangepi-zero3", "allwinner,sun50i-h618";
+
+	soc {
+		rfkill {
+			compatible = "allwinner,sunxi-rfkill";
+			status = "okay";
+			chip_en;
+			power_en;
+			pinctrl-0;
+			pinctrl-names;
+			clocks;
+
+			wlan {
+				compatible = "allwinner,sunxi-wlan";
+				wlan_busnum = <0x01>;
+				wlan_power;
+				/*SOC pad: PG18, 20U5622 pad: RST_N - PIN12*/
+				wlan_regon    = <&pio 0x06 0x12 GPIO_ACTIVE_HIGH>;
+				/*SOC pad: PG15, 20U5622 pad: GPIO1 - PIN13*/
+				wlan_hostwake = <&pio 0x06 0x0f GPIO_ACTIVE_HIGH>;
+				wakeup-source;
+			};
+
+			bt {
+				compatible = "allwinner,sunxi-bt";
+				bt_power;
+				/*SOC pad: PG19, 20U5622: NC - PIN 34*/
+				bt_rst_n = <&pio 0x06 0x13 GPIO_ACTIVE_LOW>;
+			};
+		};
+
+		btlpm {
+			compatible = "allwinner,sunxi-btlpm";
+			status = "okay";
+			uart_index = <0x01>;
+			/*SOC pad: PG17, 20U5622: CHIP_EN - PIN6*/
+			bt_wake     = <&pio 0x06 0x11 GPIO_ACTIVE_HIGH>;
+			/*SOC pad: PG16, 20U5622: INT - PIN7*/
+			bt_hostwake = <&pio 0x06 0x10 GPIO_ACTIVE_HIGH>;
+			wakeup-source;
+		};
+
+		sdmmc@4021000 {
+			compatible  = "allwinner,sunxi-mmc-v4p1x";
+			device_type = "sdc1";
+			reg         = <0x4021000 0x1000>;
+			interrupts  = <GIC_SPI 0x24 IRQ_TYPE_LEVEL_HIGH>;
+			/*osc24m CLK_PLL_PERIPH1_2X CLK_MMC1 CLK_BUS_MMC1*/
+			clocks      = 	<&osc24M>,
+					<&ccu CLK_PLL_PERIPH1_2X>,
+					<&ccu CLK_MMC1>, <&ccu CLK_BUS_MMC1>;
+			clock-names = "osc24m\0pll_periph\0mmc\0ahb";
+			/* CLK_PLL_VE */
+			resets      = <&ccu CLK_PLL_VE>;
+			reset-names = "rst";
+			pinctrl-names = "default";
+			pinctrl-0 = <&mmc1_pins>;
+			max-frequency = <0x8f0d180>;
+			bus-width = <0x04>;
+			ctl-spec-caps = <0x08>;
+			cap-sd-highspeed;
+			no-mmc;
+			keep-power-in-suspend;
+			sunxi-dly-52M-ddr4 = <0x01 0x00 0x00 0x00 0x02>;
+			sunxi-dly-104M     = <0x01 0x00 0x00 0x00 0x01>;
+			sunxi-dly-208M     = <0x01 0x00 0x00 0x00 0x01>;
+			status = "okay";
+			no-sd;
+			sd-uhs-sdr12;
+			sd-uhs-sdr25;
+			sd-uhs-sdr50;
+			sd-uhs-ddr50;
+			sd-uhs-sdr104;
+			sunxi-dis-signal-vol-sw;
+			cap-sdio-irq;
+			ignore-pm-notify;
+			vqmmc-supply = <&reg_dldo1>;
+		};
+	};
 };
 
 &emac0 {
@@ -27,6 +105,12 @@
 	 */
 	broken-cd;
 	vmmc-supply = <&reg_dldo1>;
+};
+
+
+
+&mmc1 {
+	status = "disabled";
 };
 
 &r_i2c {

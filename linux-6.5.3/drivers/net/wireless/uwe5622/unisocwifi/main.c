@@ -362,7 +362,8 @@ static struct net_device_stats *sprdwl_get_stats(struct net_device *ndev)
 	return &ndev->stats;
 }
 
-static void sprdwl_tx_timeout(struct net_device *ndev)
+/* static void sprdwl_tx_timeout(struct net_device *ndev) */
+static void sprdwl_tx_timeout(struct net_device *ndev, unsigned int txqueue)
 {
 	wl_ndev_log(L_DBG, ndev, "%s\n", __func__);
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 7, 0)
@@ -933,12 +934,14 @@ static int sprdwl_set_mac(struct net_device *dev, void *addr)
 		if (!is_zero_ether_addr(sa->sa_data)) {
 			vif->has_rand_mac = true;
 			memcpy(vif->random_mac, sa->sa_data, ETH_ALEN);
-			memcpy(dev->dev_addr, sa->sa_data, ETH_ALEN);
+			/* memcpy(dev->dev_addr, sa->sa_data, ETH_ALEN); */
+			dev_addr_set(dev, sa->sa_data);
 		} else {
 			vif->has_rand_mac = false;
 			netdev_info(dev, "need clear random mac for sta/softap mode\n");
 			memset(vif->random_mac, 0, ETH_ALEN);
-			memcpy(dev->dev_addr, vif->mac, ETH_ALEN);
+			/* memcpy(dev->dev_addr, vif->mac,i ETH_ALEN); */
+			dev_addr_set(dev, sa->sa_data);
 		}
 	}
 	/*return success to pass vts test*/
@@ -1117,7 +1120,8 @@ static int sprdwl_get_mac_from_file(struct sprdwl_vif *vif, u8 *addr)
 
 	return 0;
 random_mac:
-	random_ether_addr(addr);
+	/* random_ether_addr(addr); */
+	eth_random_addr(addr);
 	wl_warn("%s use random MAC address\n",
 			__func__);
 	/* initialize MAC addr with specific OUI */
@@ -1506,7 +1510,7 @@ static struct sprdwl_vif *sprdwl_register_netdev(struct sprdwl_priv *priv,
 	ndev->features |= NETIF_F_SG;
 	SET_NETDEV_DEV(ndev, wiphy_dev(priv->wiphy));
 
-	sprdwl_set_mac_addr(vif, addr, ndev->dev_addr);
+	/* sprdwl_set_mac_addr(vif, addr, ndev->dev_addr); */
 
 #ifdef CONFIG_P2P_INTF
 	if (type == NL80211_IFTYPE_P2P_DEVICE)

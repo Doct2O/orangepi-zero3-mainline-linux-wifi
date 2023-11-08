@@ -13,6 +13,8 @@
 #include <linux/export.h>
 #include <marlin_platform.h>
 
+#include "../../../../../fs/proc/internal.h"
+
 #define VERSION         "marlin2 V0.1"
 #define PROC_DIR        "bluetooth/sleep"
 
@@ -22,6 +24,39 @@
 #ifndef TRUE
 #define TRUE        1
 #endif
+
+extern struct wakeup_source *wakeup_source_create(const char *name);
+extern void wakeup_source_destroy(struct wakeup_source *ws);
+extern void wakeup_source_add(struct wakeup_source *ws);
+extern void wakeup_source_remove(struct wakeup_source *ws);
+extern struct wakeup_source *wakeup_source_register(struct device *dev,
+                                                   const char *name);
+extern void wakeup_source_unregister(struct wakeup_source *ws);
+extern int wakeup_sources_read_lock(void);
+extern void wakeup_sources_read_unlock(int idx);
+extern struct wakeup_source *wakeup_sources_walk_start(void);
+extern struct wakeup_source *wakeup_sources_walk_next(struct wakeup_source *ws);
+extern int device_wakeup_enable(struct device *dev);
+extern int device_wakeup_disable(struct device *dev);
+extern void device_set_wakeup_capable(struct device *dev, bool capable);
+extern int device_set_wakeup_enable(struct device *dev, bool enable);
+extern void __pm_stay_awake(struct wakeup_source *ws);
+extern void pm_stay_awake(struct device *dev);
+extern void __pm_relax(struct wakeup_source *ws);
+extern void pm_relax(struct device *dev);
+extern void pm_wakeup_ws_event(struct wakeup_source *ws, unsigned int msec, bool hard);
+extern void pm_wakeup_dev_event(struct device *dev, unsigned int msec, bool hard);
+
+static inline void __pm_wakeup_event(struct wakeup_source *ws, unsigned int msec)
+{
+       return pm_wakeup_ws_event(ws, msec, false);
+}
+
+static inline void * PDE_DATA(struct inode *inode)
+{
+        return (struct mdbg_proc_entry *) PDE(inode)->data;
+}
+
 
 struct proc_dir_entry *bluetooth_dir, *sleep_dir;
 struct wakeup_source *tx_ws;
@@ -73,12 +108,20 @@ static int bluesleep_open_proc_btwrite(struct inode *inode, struct file *file)
 	return single_open(file, btwrite_proc_show, PDE_DATA(inode));
 }
 
-static const struct file_operations lpm_proc_btwrite_fops = {
+/* static const struct file_operations lpm_proc_btwrite_fops = {
 	.owner = THIS_MODULE,
 	.open = bluesleep_open_proc_btwrite,
 	.read = seq_read,
 	.write = bluesleep_write_proc_btwrite,
 	.release = single_release,
+}; */
+
+static const struct proc_ops lpm_proc_btwrite_fops = {
+       /*.owner = THIS_MODULEi,*/
+       .proc_open = bluesleep_open_proc_btwrite,
+       .proc_read = seq_read,
+       .proc_write = bluesleep_write_proc_btwrite,
+       .proc_release = single_release,
 };
 
 /*static int __init bluesleep_init(void)*/

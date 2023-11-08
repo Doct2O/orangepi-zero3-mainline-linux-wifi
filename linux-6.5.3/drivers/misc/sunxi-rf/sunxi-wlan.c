@@ -255,7 +255,7 @@ int sunxi_wlan_init(struct platform_device *pdev)
 	struct device_node *np = of_find_matching_node(pdev->dev.of_node, sunxi_wlan_ids);
 	struct device *dev = &pdev->dev;
 	struct sunxi_wlan_platdata *data;
-	enum of_gpio_flags config;
+	// enum of_gpio_flags config;
 	u32 val;
 	int ret = 0;
 	int count, i;
@@ -345,11 +345,14 @@ int sunxi_wlan_init(struct platform_device *pdev)
 		}
 	}
 
-	data->gpio_wlan_regon = of_get_named_gpio_flags(np, "wlan_regon", 0, &config);
+	/* data->gpio_wlan_regon = of_get_named_gpio_flags(np, "wlan_regon", 0, &config); */
+	data->gpio_wlan_regon = of_get_named_gpio(np, "wlan_regon", 0);
 	if (!gpio_is_valid(data->gpio_wlan_regon)) {
 		dev_err(dev, "get gpio wlan_regon failed\n");
 	} else {
-		data->gpio_wlan_regon_assert = (config == OF_GPIO_ACTIVE_LOW) ? 0 : 1;
+		/* data->gpio_wlan_regon_assert = (config == OF_GPIO_ACTIVE_LOW) ? 0 : 1; */
+		/* This is true for 20U5622 chip. Should be taken from DTB */
+		data->gpio_wlan_regon_assert = 1;
 		dev_info(dev, "wlan_regon gpio=%d assert=%d\n", data->gpio_wlan_regon, data->gpio_wlan_regon_assert);
 
 		ret = devm_gpio_request(dev, data->gpio_wlan_regon,
@@ -368,11 +371,14 @@ int sunxi_wlan_init(struct platform_device *pdev)
 		}
 	}
 
-	data->gpio_wlan_hostwake = of_get_named_gpio_flags(np, "wlan_hostwake", 0, &config);
+	/* data->gpio_wlan_hostwake = of_get_named_gpio_flags(np, "wlan_hostwake", 0, &config); */
+	data->gpio_wlan_hostwake = of_get_named_gpio(np, "wlan_hostwake", 0);
 	if (!gpio_is_valid(data->gpio_wlan_hostwake)) {
 		dev_err(dev, "get gpio wlan_hostwake failed\n");
 	} else {
-		data->gpio_wlan_hostwake_assert = (config == OF_GPIO_ACTIVE_LOW) ? 0 : 1;
+		/* data->gpio_wlan_hostwake_assert = (config == OF_GPIO_ACTIVE_LOW) ? 0 : 1; */
+		/* This is true only for 20U5622 chip. Should be taken from DTB */
+		data->gpio_wlan_hostwake_assert = 1;
 		dev_info(dev, "wlan_hostwake gpio=%d assert=%d\n", data->gpio_wlan_hostwake, data->gpio_wlan_hostwake_assert);
 
 		ret = devm_gpio_request(dev, data->gpio_wlan_hostwake,

@@ -1,6 +1,8 @@
 #ifndef __WCN_MISC_H__
 #define __WCN_MISC_H__
 
+#include "../../missing-from-5.4.h" 
+
 #include <linux/mutex.h>
 #include <linux/types.h>
 

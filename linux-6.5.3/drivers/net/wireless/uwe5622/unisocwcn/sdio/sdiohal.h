@@ -18,6 +18,8 @@
 #include "../sleep/slp_mgr.h"
 #endif
 
+#include "../../missing-from-5.4.h"
+
 #define PERFORMANCE_COUNT 100
 #define SDIOHAL_PRINTF_LEN (16)
 #define SDIOHAL_NORMAL_LEVEL (0x01)

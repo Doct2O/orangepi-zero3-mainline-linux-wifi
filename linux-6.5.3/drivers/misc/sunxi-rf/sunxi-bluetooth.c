@@ -148,7 +148,7 @@ int sunxi_bt_init(struct platform_device *pdev)
 	struct device_node *np = of_find_matching_node(pdev->dev.of_node, sunxi_bt_ids);
 	struct device *dev = &pdev->dev;
 	struct sunxi_bt_platdata *data;
-	enum of_gpio_flags config;
+	// enum of_gpio_flags config;
 	int ret = 0;
 	int count, i;
 
@@ -219,11 +219,14 @@ int sunxi_bt_init(struct platform_device *pdev)
 		}
 	}
 
-	data->gpio_bt_rst = of_get_named_gpio_flags(np, "bt_rst_n", 0, &config);
+	/* data->gpio_bt_rst = of_get_named_gpio_flags(np, "bt_rst_n", 0, &config); */
+	data->gpio_bt_rst = of_get_named_gpio(np, "bt_rst_n", 0);
 	if (!gpio_is_valid(data->gpio_bt_rst)) {
 		dev_err(dev, "get gpio bt_rst failed\n");
 	} else {
-		data->gpio_bt_rst_assert = (config == OF_GPIO_ACTIVE_LOW) ? 0 : 1;
+		/* data->gpio_bt_rst_assert = (config == OF_GPIO_ACTIVE_LOW) ? 0 : 1; */
+		/* This is true for 20U5622 chip, in the end should be determined based on DTB */
+		data->gpio_bt_rst_assert = 0;
 		dev_info(dev, "bt_rst gpio=%d assert=%d\n", data->gpio_bt_rst, data->gpio_bt_rst_assert);
 
 		ret = devm_gpio_request(dev, data->gpio_bt_rst, "bt_rst");

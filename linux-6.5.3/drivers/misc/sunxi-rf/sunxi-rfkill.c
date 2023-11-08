@@ -11,6 +11,8 @@
 #include "internal.h"
 #include "sunxi-rfkill.h"
 
+#include <linux/pinctrl/consumer.h>
+
 #define MODULE_CUR_VERSION   "v1.0.9"
 
 static struct sunxi_rfkill_platdata *rfkill_data;
@@ -72,7 +74,7 @@ static int rfkill_probe(struct platform_device *pdev)
 	struct device_node *np = pdev->dev.of_node;
 	struct device *dev = &pdev->dev;
 	struct sunxi_rfkill_platdata *data;
-	enum of_gpio_flags config;
+	// enum of_gpio_flags config;
 	char *pctrl_name = PINCTRL_STATE_DEFAULT;
 	struct pinctrl_state *pctrl_state = NULL;
 	int ret = 0;
@@ -100,11 +102,14 @@ static int rfkill_probe(struct platform_device *pdev)
 		}
 	}
 
-	data->gpio_chip_en = of_get_named_gpio_flags(np, "chip_en", 0, &config);
+	/* data->gpio_chip_en = of_get_named_gpio_flags(np, "chip_en", 0, &config);*/
+	data->gpio_chip_en = of_get_named_gpio(np, "chip_en", 0);
 	if (!gpio_is_valid(data->gpio_chip_en)) {
 		dev_err(dev, "get gpio chip_en failed\n");
 	} else {
-		data->gpio_chip_en_assert = (config == OF_GPIO_ACTIVE_LOW) ? 0 : 1;
+		/* data->gpio_chip_en_assert = (config == OF_GPIO_ACTIVE_LOW) ? 0 : 1; */
+		/* This is true for 20U5622 chip. Should be determined based on DTB */
+		data->gpio_chip_en_assert = 1;
 		dev_info(dev, "chip_en gpio=%d assert=%d\n", data->gpio_chip_en, data->gpio_chip_en_assert);
 
 		ret = devm_gpio_request(dev, data->gpio_chip_en, "chip_en");
@@ -122,11 +127,14 @@ static int rfkill_probe(struct platform_device *pdev)
 		}
 	}
 
-	data->gpio_power_en = of_get_named_gpio_flags(np, "power_en", 0, &config);
+	/* data->gpio_power_en = of_get_named_gpio_flags(np, "power_en", 0, &config); */
+	data->gpio_power_en = of_get_named_gpio(np, "power_en", 0);
 	if (!gpio_is_valid(data->gpio_power_en)) {
 		dev_err(dev, "get gpio power_en failed\n");
 	} else {
-		data->gpio_power_en_assert = (config == OF_GPIO_ACTIVE_LOW) ? 0 : 1;
+		/*data->gpio_power_en_assert = (config == OF_GPIO_ACTIVE_LOW) ? 0 : 1;*/
+		/* This is true for 20U5622 chip. Should be taken from DTB */
+		data->gpio_power_en_assert = 1;
 		dev_info(dev, "power_en gpio=%d assert=%d\n", data->gpio_power_en, data->gpio_power_en_assert);
 
 		ret = devm_gpio_request(dev, data->gpio_power_en, "power_en");

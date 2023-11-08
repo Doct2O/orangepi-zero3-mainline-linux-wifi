@@ -133,7 +133,7 @@ int sunxi_modem_init(struct platform_device *pdev)
 	struct device_node *np = of_find_matching_node(pdev->dev.of_node, sunxi_modem_ids);
 	struct device *dev = &pdev->dev;
 	struct sunxi_modem_platdata *data;
-	enum of_gpio_flags config;
+	// enum of_gpio_flags config;
 	int ret = 0;
 	int count, i;
 
@@ -182,11 +182,14 @@ int sunxi_modem_init(struct platform_device *pdev)
 		dev_info(dev, "modem power[%d] (%s)\n", i, data->power_name[i]);
 	}
 
-	data->gpio_modem_rst = of_get_named_gpio_flags(np, "modem_rst", 0, &config);
+	/* data->gpio_modem_rst = of_get_named_gpio_flags(np, "modem_rst", 0, &config); */
+	data->gpio_modem_rst = of_get_named_gpio(np, "modem_rst", 0);
 	if (!gpio_is_valid(data->gpio_modem_rst)) {
 		dev_err(dev, "get gpio modem_rst failed\n");
 	} else {
-		data->gpio_modem_rst_assert = (config == OF_GPIO_ACTIVE_LOW) ? 0 : 1;
+		/* data->gpio_modem_rst_assert = (config == OF_GPIO_ACTIVE_LOW) ? 0 : 1; */
+		/* This is true for 20U5622 chip. In the end should be determined based on DTB */
+		data->gpio_modem_rst_assert = 0;
 		dev_info(dev, "modem_rst gpio=%d assert=%d\n", data->gpio_modem_rst, data->gpio_modem_rst_assert);
 
 		ret = devm_gpio_request(dev, data->gpio_modem_rst, "modem_rst");

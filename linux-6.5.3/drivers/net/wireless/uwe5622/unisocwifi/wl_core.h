@@ -30,6 +30,8 @@
 #include <linux/uaccess.h>
 #include "dbg_ini_util.h"
 
+#include "../missing-from-5.4.h"
+
 #define SPRDWL_NORMAL_MEM	0
 #define SPRDWL_DEFRAG_MEM	1
 

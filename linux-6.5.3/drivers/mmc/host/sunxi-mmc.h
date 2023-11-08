@@ -502,7 +502,7 @@ void sunxi_mmc_set_a12a(struct sunxi_mmc_host *host);
 void sunxi_mmc_do_shutdown_com(struct platform_device *pdev);
 extern int mmc_send_status(struct mmc_card *card, u32 *status);
 extern void mmc_set_bus_width(struct mmc_host *host, unsigned int width);
-extern int mmc_flush_cache(struct mmc_card *);
+// extern int mmc_flush_cache(struct mmc_card *);
 extern int sunxi_sel_pio_mode(struct pinctrl *pinctrl, u32 pm_sel);
 
 #endif

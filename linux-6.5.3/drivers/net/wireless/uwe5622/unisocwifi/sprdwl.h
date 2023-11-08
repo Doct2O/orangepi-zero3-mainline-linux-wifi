@@ -18,6 +18,8 @@
 #ifndef __SPRDWL_H__
 #define __SPRDWL_H__
 
+#include "../missing-from-5.4.h"
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/ieee80211.h>

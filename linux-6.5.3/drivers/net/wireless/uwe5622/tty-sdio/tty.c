@@ -475,7 +475,8 @@ static void mtty_flush_chars(struct tty_struct *tty)
 {
 }
 
-static int mtty_write_room(struct tty_struct *tty)
+/* static int mtty_write_room(struct tty_struct *tty) */
+static unsigned int mtty_write_room(struct tty_struct *tty)
 {
 	return INT_MAX;
 }
@@ -509,7 +510,8 @@ static int mtty_tty_driver_init(struct mtty_device *device)
 	if (!device->port)
 		return -ENOMEM;
 
-	driver = alloc_tty_driver(MTTY_DEV_MAX_NR * 2);
+	/* driver = alloc_tty_driver(MTTY_DEV_MAX_NR * 2); */
+	driver = __tty_alloc_driver(MTTY_DEV_MAX_NR * 2, THIS_MODULE, 0);
 	if (!driver)
 		return -ENOMEM;
 
@@ -533,7 +535,8 @@ static int mtty_tty_driver_init(struct mtty_device *device)
 	tty_port_link_device(device->port, driver, 0);
 	ret = tty_register_driver(driver);
 	if (ret) {
-		put_tty_driver(driver);
+		/* put_tty_driver(driver); */
+		tty_driver_kref_put(driver);
 		tty_port_destroy(device->port);
 		return ret;
 	}
@@ -545,7 +548,8 @@ static void mtty_tty_driver_exit(struct mtty_device *device)
 	struct tty_driver *driver = device->driver;
 
 	tty_unregister_driver(driver);
-	put_tty_driver(driver);
+	/* put_tty_driver(driver); */
+	tty_driver_kref_put(driver);
 	tty_port_destroy(device->port);
 }
 
