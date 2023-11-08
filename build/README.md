@@ -36,7 +36,7 @@ mkimage -A arm64 -O linux -T ramdisk -C gzip -d rootfs.cpio.gz rootfs.cpio.uboot
 ```
 Commands above will create very crude initrd in ```/tmp/rootfs/rootfs.cpio.uboot```.
 
-# Botting from the card
+# Booting from the card
 If you have flashed bootloader along with the FAT32 partition from here:
 https://github.com/Doct2O/orangepi-zero3-bl
 
@@ -468,8 +468,8 @@ init-4.4#
 ```
 </details>
 
-# Botting through network via ad hoc tftp server
-This reuires a bit more of preparation, but is way more convinient for testing.
+# Booting through network via ad hoc tftp server
+This requires a bit more of preparation, but is way more convinient for testing.
 
 - First connect the board to the PC via ethernet cord
 - Set the IP of the network card to, for example: 192.168.100.5/24
@@ -1266,8 +1266,9 @@ WCN: chip_power_off
 ```
 
 The same happens on stock reference image of Ubuntu from Sunxi for Orange Pi Zero 3, when using iwconfig.
-To get it working on the Sunxi's image one uses ```nmcli```, but I was unable to get it working
-in my build (nmcli and NetworkManager refuses to manage the wlan0 interface). This needs further investigation.
+To connect to net on the Sunxi's image one uses ```nmcli```, but I was unable to get it working
+in my build (```nmcli``` and ```NetworkManager``` refuses to manage the wlan0 interface).
+This needs further investigation.
 
 But for now it must wait for better times from my side, since my goal was to configure
 the WiFi chip as an Access Point, which works great by utilizing ```hostapd``` tooling.
