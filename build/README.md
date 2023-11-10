@@ -1247,6 +1247,8 @@ BSS 54:67:51:1e:9b:67(on wlan0)
 ```
 </details>
 
+
+# Connecting to WiFi network
 Sadly connecting to the existing network does not work via ```iwconfig wlan0 essid test_hotspot key s:test_hotspot```
 resulting in firmware crash.
 ```
@@ -1264,16 +1266,103 @@ sdiohal:sdiohal_runtime_put wait xmit_cnt end
 WCN: chip_power_off
 (...)
 ```
+The reason behind that remains unknown.
 
-The same happens on stock reference image of Ubuntu from Sunxi for Orange Pi Zero 3, when using iwconfig.
-To connect to net on the Sunxi's image one uses ```nmcli```, but I was unable to get it working
-in my build (```nmcli``` and ```NetworkManager``` refuses to manage the wlan0 interface).
-This needs further investigation.
+### To actually connect to WiFi network use ```wpa_supplicant``` instead. 
+To do this you will need two tools on your Linux:
+- wpa_passphrase
+- wpa_supplicant
 
-But for now it must wait for better times from my side, since my goal was to configure
-the WiFi chip as an Access Point, which works great by utilizing ```hostapd``` tooling.
-But remember to change the mac (initially it is zeroed), before using ```hostapd``` eg.:
+The connection sequence look like this:
+```
+ip link set wlan0 address <some_mac_addr>
+wpa_passphrase <hotspot_ssid> <hotspot_passphrase> | tee /etc/wpa_supplicant.conf
+wpa_supplicant -c /etc/wpa_supplicant.conf -i wlan0&
+```
+eg.
+```
+ip link set wlan0 address 02:42:ac:11:00:02
+wpa_passphrase test_hotspot test_hotspot | tee /etc/wpa_supplicant.conf
+wpa_supplicant -dd -c /etc/wpa_supplicant.conf -i wlan0&
+```
+
+Once done you should be connected to WiFi. Depending on your system composition you also may need to 
+get the IP addr via the dhcp. To do this you may use ```dhclient``` tool: 
+```
+dhclient
+```
+
+If everything went correctly, your wlan0 should have assigned some IP address:
+```
+# ip a
+(...)
+8: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast qlen 1000
+    link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.231.3/24 brd 192.168.231.255 scope global wlan0
+       valid_lft forever preferred_lft forever
+```
+And now you should be able to ping some external addresses eg.
+```
+ping example.com -I wlan0
+```
+
+If that does not work, make sure default route goes via your wlan0 interface:
+```
+# ip route
+default via 192.168.231.49 dev wlan0
+```
+
+If nothing like this can be spotted, add the route by following command:
+```
+ip route add default via <gateway_ip> dev eth0 
+```
+eg.
+wlan0
+```
+ip route add default via 192.168.231.49 dev eth0 
+```
+
+If that still does not work, check the DNS status. For my bare-bone, buildroot based image it requires adding the DNS server IP to file ```/etc/resolv.conf```, eg.
+```
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+```
+
+# Setting up Access Point
+Access Point, works great by utilizing ```hostapd``` tooling.
+But remember to change the MAC of wlan0 (initially it is zeroed), before using ```hostapd``` by:
+```
+ip link set wlan0 address <MAC addr>
+```
+eg.
 ```
 ip link set wlan0 address 02:42:ac:11:00:02
 ```
 
+And then create config file for ```hostapd``` somewhere (let's say ```~/hostapd.conf```), example file content:
+```
+interface=wlan0
+driver=nl80211
+ssid=example_ap
+hw_mode=g
+channel=7
+wmm_enabled=0
+macaddr_acl=0
+auth_algs=1
+ignore_broadcast_ssid=0
+wpa=2
+wpa_passphrase=example_ap
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=TKIP
+```
+
+Finally start the ```hostapd``` itself via command:
+```
+hostapd -dd <config_file> &
+```
+eg.
+```
+hostapd -dd ~/hostapd.conf &
+```
+
+This should create Access Point called ```example_ap``` with the passphrase ```example_ap```.
+It is not coupled with any DHCP server yet, so clients won't get any IP, but the WiFi connection itself should work without any problem.
