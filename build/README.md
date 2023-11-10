@@ -1273,7 +1273,7 @@ To do this you will need two tools on your Linux:
 - wpa_passphrase
 - wpa_supplicant
 
-The connection sequence look like this:
+The connection sequence looks like this:
 ```
 ip link set wlan0 address <some_mac_addr>
 wpa_passphrase <hotspot_ssid> <hotspot_passphrase> | tee /etc/wpa_supplicant.conf
@@ -1328,7 +1328,7 @@ echo "nameserver 8.8.8.8" > /etc/resolv.conf
 ```
 
 # Setting up Access Point
-Access Point, works great by utilizing ```hostapd``` tooling.
+Access Point works great by utilizing ```hostapd``` tooling.
 But remember to change the MAC of wlan0 (initially it is zeroed), before using ```hostapd``` by:
 ```
 ip link set wlan0 address <MAC addr>
