@@ -31,4 +31,4 @@ Both are required to boot the board.
 
 The more info on how to boot the Linux, what is needed to compose rootfs for working WiFi chip, how to connect to WiFi, set up an Access Point can be found in README from ```build``` subdirectory.
 
-# I will put here more comprehensive report from enabling driver for 20U5622 some later on, for now README.md from build subfolder must be sufficient on running the images built from here. If you still want to know the details on driver porting it is highly  to see diffs in commits.
+# I will put here more comprehensive report from enabling driver for 20U5622 some later on, for now README.md from build subfolder must be sufficient on running the images built from here. If you still want to know the details on driver porting it is highly recommended to see diffs in commits.
