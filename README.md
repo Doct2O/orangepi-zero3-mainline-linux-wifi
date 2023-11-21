@@ -5,7 +5,7 @@ and driver sources of: rfkill, WiFi+BT chip and SDIO from sunxi repo:
 https://github.com/orangepi-xunlong/linux-orangepi.git, branch: orange-pi-5.4-sun50iw9, commit: 9ab7a758149d3c9b721878a0c18b3f9c5d6c93e6.
 It required a bit of input from me, like fixes in DTS, but it wasn't THAT much.
 And thus I am not going to actively maintain it, if there is any workaround for anything, the workaround is prefered. 
-That being said, if I found anything that directly affects my use case (WiFi chip in Access Point mode for example) I'll probably fix it.
+That being said, if I find anything that directly affects my use case (WiFi chip in Access Point mode for example) I'll probably fix it.
 And last but not least, when Linux will get its 6.x.x version marked as LTS by the end of this year, I will probably try to adapt the changes done
 in version 6.5.3 to the LTS one.
 
@@ -16,9 +16,9 @@ Sadly, I didn't manage to build his altered version of Linux for Orange Pi Zero3
 
 # What is working?
 Pretty much everything that works on the mainline Linux plus WiFi (AP and connecting to the net). Not sure how about the bluetooth, never tested it.
-From things I've tested: USB, Ethernet, WiFi, Serial and GPIO all seems to work just fine.
+From things I've tested: USB, Ethernet, WiFi, Serial and GPIO, all seems to work just fine.
 
-# Major commits list (if you hate traversing commits history as much as I do)
+# Major commits worth a checkout (if you hate traversing commits history as much as I do), chronologically top-bottom
  - **73f07d35f55094932070cfbf33234005bff8093a** - Added support for Orange Pi Zero3 board (DTS and defconfig) to mainline Linux
  - **a58f2ec8022fb7e6b64d880cfad2f22fd9074533** - Ugly, but working port of driver for 20U5622 WiFi chip based on Sunxi's one for Linux 5.4
 
@@ -54,7 +54,7 @@ Your Image will be in a subdir, here: ```arch/arm64/boot/Image``` and the DTB in
 Both are required to boot the board.
 
 # Booting Linux kernel
-The more info on how to boot the Linux and work with WiFi, along with pre-built images and boot logs is contained in ```build``` subdirectory. Rapid reference:
+The more info on how to boot the Linux and work with WiFi, along with pre-built images and boot logs are contained in ```build``` subdirectory. Rapid reference:
 - Booting linux: https://github.com/Doct2O/orangepi-zero3-mainline-linux-wifi/tree/main/build#booting-linux---prerequisites
    * SD Card:  https://github.com/Doct2O/orangepi-zero3-mainline-linux-wifi/tree/main/build#booting-from-the-card
    * Via tftp: https://github.com/Doct2O/orangepi-zero3-mainline-linux-wifi/tree/main/build#booting-through-network-via-ad-hoc-tftp-server
@@ -77,12 +77,12 @@ https://drive.google.com/file/d/1GelRJz-6Dg4i_EQ1SwrfHeqfLOPw9kdO/view (taken fr
 
 Some say the same schematic is archived here: https://web.archive.org/web/20231120203854/https://doc-14-ag-docs.googleusercontent.com/docs/securesc/ha0ro937gcuc7l7deffksulhg5h7mbp1/lqoghaa3ji66q97hk2a6r05c9m8rj376/1700512725000/11359042997240094710/*/1GelRJz-6Dg4i_EQ1SwrfHeqfLOPw9kdO?e=download&uuid=4e7a6a87-3489-4848-b3b0-4335daf848c8 (:
 
-But don't get too exited, because, as the H618 chip pads seems to be marked alright, the WiFi+BT chip (20U5622) labels are all wrong, except they don't (at least not entirely).
+But don't get too exited, because, as the H618 chip's pads seems to be marked alright, the WiFi+BT chip (20U5622) labels are all wrong, except they don't (at least not entirely).
 
 Reference 20U5622 datasheet to see yourself how wrong they are, can be found here: https://fccid.io/2AQ9Y-OPI3LTS/Parts-List/Tune-Up-Info/Antenna-Specification-2-6192129.pdf
 and may or may not be archived here: https://web.archive.org/web/20231120204424/https://fccid.io/2AQ9Y-OPI3LTS/Parts-List/Tune-Up-Info/Antenna-Specification-2-6192129.pdf
 
-Anyways, under closer investigation, and after using sophisticated methods of HW analysis, which I call: "Turn on and off H618's GPIO pin periodically, while measuring the logical level at the other side"™ it turns out, that the labels are indeed all wrong, but the 20U5622 pins numbers on the board's schematic matches the ones in the datasheet.
+Anyways, under closer investigation, and after using sophisticated methods of HW analysis, which I call: "Turn on and off H618's GPIO pad periodically, while measuring the logical level at the other side"™ it turns out, that the labels are indeed all wrong, but the 20U5622 pins numbers on the board's schematic matches the ones in the datasheet.
 
 After physically tracing, well, the traces on the Orange Pi PCB, here is what wiring I came up with:
 ```
@@ -102,16 +102,15 @@ After physically tracing, well, the traces on the Orange Pi PCB, here is what wi
 ```
 
 The SDIO pins are connected 1:1 between the two chips, so I don't include them here. The table above is important, because the pins
-mentioned there are used during WiFi chip's power on sequence, both in UWE5622 and rfkill drivers authored by Sunxi for Linux 5.4.
+mentioned there are used during WiFi chip's power on sequence, and are used both in UWE5622 and rfkill drivers authored by Sunxi for Linux 5.4.
 
-And btw., this is how the table above translates to pins functions in Sunxi drivers nomenclature:
+And btw., this is how the table above translates to pin function in Sunxi drivers nomenclature:
 ```
 bt_rst_n      - PG19
 wlan_regon    - PG18
 bt_wake       - PG17
 bt_hostwake   - PG16
 wlan_hostwake - PG15
-
 ```
 
 All that is contained in DTS for Orange Pi Zero3, here:
@@ -124,17 +123,17 @@ bt_hostwake = <&pio 0x06 0x10 GPIO_ACTIVE_HIGH>;
 ```
 This is the pins group number. For ```G``` group i.e. ```PGxx``` it is 0x06.
 
-The last thing to ascertain was the clocks and interrupts numbers in DTS for the SDIO controller. 
-I've get those by decompiling the dtb from original, official image of ubuntu for Orange Pi Zero3,
+The last two things to ascertain was the clocks and interrupts numbers in DTS for the SDIO controller. 
+I've get those by decompiling the dtb from original, official image of Ubuntu for Orange Pi Zero3,
 and then comparing them against Linux 5.4 sources taken from Sunxi Github. See disclaimer section
-for more precise reference to the sources. 
+for more precise reference to the Sunxi sources. 
 
 After this I seeked for the same (or similar) clocks and interrupts names in mainline Linux 6.5.3 
 sources and shoved them into DTS node inspired by Sunxi's one. Finally I were observing the logs
-and comparing what drivers report in comparasion with the official Sunxi Ubuntu image. Loop and repeat.
+and comparing what drivers report in comparison with the official Sunxi Ubuntu image. Loop and repeat.
 Boring stuff.
 
-### Challenge-response code quirks
+### Challenge-Response code quirks
 After I got something, what looked like valid trinity of: hardware wiring, clocks and interrupts. I could actually test the driver. 
 And right of the bat, just after modprobing the module I got somewhat weird and intriguing error:
 ```
@@ -215,9 +214,9 @@ Call trace:
 modprobe: can't load module uwe5622_bsp_sdio (kernel/drivers/net/wireless/uwe5622/unisocwcn/uwe5622_bsp_sdio.ko): invalid module format
 ```
 
-If you wonder how the hell in-tree built driver can spit out: "invalid module format", and cause crash,
+If you wonder how the hell driver built in-kernel-tree can spit out: "invalid module format", and cause crash,
 despite being modprobed on the exact same kernel it had been built along, congratulations your reasoning works allright - and also - I had no clue back then too.
-I mean, I still don't know, but now, at least I know the very root cause.
+I mean, I still don't know, but now, at least I know the real underlying root cause.
 
 After some wizardry and hackering, I managed to push it a bit further:
 ```
@@ -303,41 +302,42 @@ Unexpected kernel BRK exception at EL1
 ```
 
 The spell I've casted is called offum-by-oneum. I simply added 1 to ```mod->arch.core.plt_max_entries``` while initializing
-this structure, so the later check on won't hold:
+this structure, so the check later on won't detect any issues:
 ``` 
 if (WARN_ON(pltsec->plt_num_entries > pltsec->plt_max_entries))
                 return 0;
 ```
 
 After this I got the log from above. I compared it with the boot log of kernel from the guys that actually seem to know what are they doing - Ubuntu from Sunxi - 
-and it looked good so far. Maybe excepct that their kernel does not crash as mine did.
-Nevertheless I got some additional info about the crash. It can be spotted that there is something wrong with function ```wcn_bind_verify_calculate_verify_data```.
+and it looked good so far. Maybe excepct that their driver did not crash in contrast to mine.
+Nevertheless I got some additional info about the crash in the log. And there, one can spot that, there is something wrong with function ```wcn_bind_verify_calculate_verify_data```.
 
-And if you are now thinking "Aha! I knew it from the very beginning" - of course you do, I literally told where the problem was in the title of the chapter.
+And if you are now thinking "Aha! I knew it from the very beginning" - of course you did, I literally said where the problem was in the title of the chapter.
 But bear with me, that's still not the end of this joyride.
 
-After I had started to look for the CR symbol, I found out that, there is no match in the sources, only in the object files, which was weird. 
-I got more suspicious, so I tracked the origin of this object file holding the symbol.
-This led me to file: https://github.com/Doct2O/orangepi-zero3-mainline-linux-wifi/blob/main/linux-6.5.3/drivers/net/wireless/uwe5622/unisocwcn/platform/wcn_bind_helper.c
+After I had started to look for the Challenge-Response symbol, I found out that, there is no match in the sources, only in the object files, which was weird. 
+I got more suspicious, so I tracked the origin of the object file holding the symbol.
+This led me to the file: https://github.com/Doct2O/orangepi-zero3-mainline-linux-wifi/blob/main/linux-6.5.3/drivers/net/wireless/uwe5622/unisocwcn/platform/wcn_bind_helper.c
 
-If you are twisted as I am, you can imidietaly notice ```0x1f 0x8b``` bytes at the start of the arryas there. And a little bit further in the code the other array, holding what seems as prefixes for cross compilers.
+If you are twisted as I am, you can immediately notice ```0x1f 0x8b``` bytes at the start of the arrays there. And also the other array a little bit further in the code, holding what seems as prefixes for cross compilers.
 
-This was big "Aha!" moment for me. After which I immediately praised the technical idea behind that (except not in conventional way, let's say if back then, my words were ASCII characters, they would occupy values below 32).
+This was big "Aha!" moment for me. After which I instantly praised the technical idea behind that (except not in conventional way, let's say if back then, my words were ASCII characters, they would occupy values below 32).
 
 But what actually is going on here?
 
-Well the ```wcn_bind_helper.c``` is compiled for the host, as an executable during the build of kernel, and once built, it is run with the argument matching
-the currently used cross-compiler. Depending on the cross compiler the respective object file is saved as an tar.gz archive (gzip could be recognized by ```0x1f 0x8b``` magic at the begining of the arrays) and unpacked. After all those actions it is included into build as a normal, legit object file. 
+Well the ```wcn_bind_helper.c``` compiles as a host executable, sometime during the build of kernel. Once built, it is run with the argument matching the currently used cross-compiler.
+Depending on the cross compiler the respective object file is saved as an tar.gz archive (gzip part could be recognized by ```0x1f 0x8b``` magic at the begining of the arrays) and unpacked.
+After all those actions it is included into driver build as a normal, legit, built from sources object file would. 
 
-The problem is that, the object file may not be compatible with your particular cross compiler. I managed to track down the toolchain used to build the object file - 
-it was one of the Linaro variety. And I told to myself: "ah təˈmeɪtoʊ, təˈmɑːtəʊ, let's switch to the linaro one". 
+The problem is that, such precompiled object file may not be compatible with your particular cross compiler. I managed to track down the toolchain used to build the object file - 
+it was one of the Linaro variety. And I told to myself: "ah təˈmeɪtoʊ, təˈmɑːtəʊ, let's switch to the Linaro one".
 
 After discovering that one cannot simply build Linux kernel with Linaro toolchain, and after hacking Linux sources in such a way, that you can, it turned out the module still crashes in the exact same way. Totally worth it.
 
-As a grown adult I did what every grown man would do and as a last struggle I had dumped the object file's executable sections as an aarch64 assembly and patched it, so now it compiles and links using regular gcc assembler.
-After adjusting the Makefile accordingly, the build worked and so the CR calculations.
+As a grown adult I did what every grown up would do, and as a last struggle I had dumped the object file's executable sections as an aarch64 assembly and patched it, so now it compiles and links using regular gcc assembler and linker.
+After adjusting the Makefile accordingly, the build worked and so the Challenge-Response calculations.
 
-If anyone is crazy enough to reverse-engineer the CR algorithm and implement it in more human language, here is example input and output data:
+If anyone is crazy enough to reverse-engineer the Challenge-Response algorithm and implement it in more human-like language, here is example input and output data:
 ```
 [   49.798923] WCN: marlin_bind_verify confuse data: 0xf71c8447f73048472ce84dba1253605a
 [   49.798938] WCN: marlin_bind_verify verify data:  0xa4eb5eda181e56a4c79873c0e84c8018
@@ -350,7 +350,7 @@ Here is the list of lingering problems, which I know about.
 But between my laziness and existing workarounds for them (or them not breaking anything), I am not going to resolve them, at least for now, most likely ever. 
 Good enough is good for me.
 
-- From time to time, when board is booted in SMP mode, the jibberish output can be observed on serial output:
+- From time to time, when board is booted in SMP mode, the jibberish output can be observed on serial console:
 ```
  mmcblk0: p1
 printk: console [ttyS0] disabled
@@ -359,7 +359,7 @@ printk: console [ttyS0] enabled
 printk: bootconsole [uart0] disabled
 printk: bootconsole [uart0] disabled
 ```
-Sometimes it is a single or a few lines, sometimes it is plenty of lines, usually this symptom does not drags on longer than till switch to userspace. So, harmless.
+Sometimes those are a few lines (or single, as in log above), sometimes it is plenty of lines, I haven't seen this symptom to drags on longer than till switch to userspace. So, harmless I guess.
 
 - Timeouts on SDIO bus while transferring 20U5622 chip firmware
 ```
@@ -388,9 +388,9 @@ sunxi-mmc-5.4 4021000.sdmmc: REG_SD_NTSR: 0x81710110
 sunxi-mmc-5.4 4021000.sdmmc: *****retry:re-send cmd*****
 (...)
 ```
-It is reproducible every single time when modprobing the 20U5622 chip driver. It does not impact further driver load, so I decided to ignore that.
+It is reproducible every single time after modprobing the 20U5622 chip driver. It does not impact further driver loading, so I decided to ignore that.
 
-- The task which is listening for heartbeat from the 20U5622 chip via modem console is considered hang and crashes kernel:
+- The background task which is listening for heartbeat on modem console of the 20U5622 chip, is considered hang and crashes kernel (after approx. 3.5-4 minutes):
 ```
 task:SPRDWL_TX_QUEUE state:D stack:0     pid:190   ppid:2      flags:0x00000008
 Call trace:
@@ -421,14 +421,15 @@ Memory Limit: none
 ---[ end Kernel panic - not syncing: hung_task: blocked tasks ]---
 ```
 
-This has probably the same curlpit as the bullet point above - some SDIO timing issues. 
-Thankfully kernel is so nice, that it exactly tells us what to do, to ignore such problems,
-simply invoke before modprobing 20U5622 driver:
+This has probably the same culprit as the bullet point above - some SDIO timing issues. 
+Thankfully kernel is so nice, that it exactly tells us what to do, to ignore such problems.
+Simply invoke before modprobing 20U5622 driver:
+
 ```
 "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
 ```
 
-- wlan0 interface which is provided by 20U5622 chip driver has initially MAC address zeroed 
+- wlan0 interface, provided by 20U5622 chip driver has initially zeroed MAC address
 ```
 # ip a
 (...)
@@ -436,7 +437,7 @@ simply invoke before modprobing 20U5622 driver:
     link/ether 00:00:00:00:00:00 brd ff:ff:ff:ff:ff:ff
 ```
 
-This can get in a way in a few places, like setting up AP or connecting to network. But one can still change the MAC manually by issuing command:
+This can get in a way in a few places, like setting up AP or connecting to the network. But one can simply change the MAC manually beforehand, by issuing command:
 
 ```
 ip link set wlan0 address <new_MAC_addr>
@@ -446,7 +447,7 @@ eg.
 ip link set wlan0 address 02:42:ac:11:00:02
 ```
 
-- While using ```iwconfig``` to connect to the WiFi I encounter a kernel crash like this:
+- ```iwconfig``` used to connect to the WiFi results in kernel crash like this:
 ```
 # iwconfig wlan0 essid test_hotspot key s:test_hotspot
 warning: `iwconfig' uses wireless extensions which will stop working for Wi-Fi 7 hardware; use nl80211
@@ -463,6 +464,5 @@ WCN: chip_power_off
 (...)
 ```
 
-This is not a kernel crash, but rather 20U5622 chip's firmware. I have no direct resolution for ```iwconfig```.
-To connect to WiFi use ```wpa_supplicant``` instead, as described here: https://github.com/Doct2O/orangepi-zero3-mainline-linux-wifi/tree/main/build#connecting-to-wifi-network
-
+This is not a kernel crash (not directly), but rather 20U5622 chip's firmware. I have no resolution strictly for ```iwconfig```, but I've got an alternative.
+To connect to the WiFi use ```wpa_supplicant``` instead of ```iwconfig```, as described here: https://github.com/Doct2O/orangepi-zero3-mainline-linux-wifi/tree/main/build#connecting-to-wifi-network
