@@ -1012,7 +1012,9 @@ kernel/drivers/net/wireless/uwe5622/tty-sdio/sprdbt_tty.ko
 Before inserting the module, you need to have the wifi chip firmware
 in filesystem in ```/lib/firmware```:
  - wcnmodem.bin           - reference file sha256 hash: 119b87ce30875734a67462f7293fb8fe85acf3270fe8b78c978ae24be7715a80
- - wifi_2355b001_1ant.ini - reference file sha256 hash: 1F3C40EC245A8D0B99AD1C23706597D6DD5008AB80CEFB7BCC1956EFC4E938F7 
+mirror: https://web.archive.org/web/20231121013108/https://raw.githubusercontent.com/orangepi-xunlong/firmware/master/wcnmodem.bin
+ - wifi_2355b001_1ant.ini - reference file sha256 hash: 1f3c40ec245a8d0b99ad1c23706597d6dd5008ab80cefb7bcc1956efc4e938f7 
+mirror: https://web.archive.org/web/20231121013205/https://raw.githubusercontent.com/orangepi-xunlong/firmware/master/wifi_2355b001_1ant.ini
 
 At lest the two above were tested by me.
 They can be found here: https://github.com/orangepi-xunlong/firmware
@@ -1247,28 +1249,7 @@ BSS 54:67:51:1e:9b:67(on wlan0)
 ```
 </details>
 
-
 # Connecting to WiFi network
-Sadly connecting to the existing network does not work via ```iwconfig wlan0 essid test_hotspot key s:test_hotspot```
-resulting in firmware crash.
-```
-# iwconfig wlan0 essid test_hotspot key s:test_hotspot
-warning: `iwconfig' uses wireless extensions which will stop working for Wi-Fi 7 hardware; use nl80211
-t key s:test_hotspot
-WCN: mdbg_assert_read:WCN Assert in rf_marlin.c line 1010, IS_2G_CHANNEL(pri20_ch_num) || IS_5G_CHANNEL(center_ch_num),data length 128
-WCN: stop_loopcheck
-WCN_ERR: chip reset & notify every subsystem...
-WCN: [marlin_cp2_reset], DO BSP RESET
-WCN: marlin power state:4, subsys: [MARLIN_WIFI] power 0
-WCN: wcn chip start power off!
-sdiohal:sdiohal_runtime_put entry
-sdiohal:sdiohal_runtime_put wait xmit_cnt end
-WCN: chip_power_off
-(...)
-```
-The reason behind that remains unknown.
-
-### To actually connect to WiFi network use ```wpa_supplicant``` instead. 
 To do this you will need two tools on your Linux:
 - wpa_passphrase
 - wpa_supplicant
