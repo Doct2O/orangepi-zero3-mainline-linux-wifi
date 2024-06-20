@@ -1029,6 +1029,14 @@ After this you can modprobe the driver for 20U5622 itself:
 ```
 modprobe sprdwl_ng.ko 
 ```
+If for some bizzare reason the modprobe refuses to work (encountered in some buildroots builds), you may insert the drivers manually by insmod, like so (KEEP INSMODING THE MODULES BELOW IN ORDER):
+```
+# insmod accepts the full path to the kernel module, here we assume the modules are in the right place to work with modprobe.
+# But in this "insmod" scenario they can be anywhere, really.
+insmod /lib/modules/6.5.3/kernel/drivers/misc/sunxi-rf/sunxi_rfkill.ko
+insmod /lib/modules/6.5.3/kernel/drivers/net/wireless/uwe5622/unisocwcn/uwe5622_bsp_sdio.ko
+insmod /lib/modules/6.5.3/kernel/drivers/net/wireless/uwe5622/unisocwifi/sprdwl_ng.ko
+```
 
 Once done the ```wlan0``` net interface should be available and
 scanning WiFi networks by ```iw dev wlan0 scan``` should work as well.
